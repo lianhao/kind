@@ -20,7 +20,8 @@
 # start from debian slim, this image is reasonably small as a starting point
 # for a kubernetes node image, it doesn't contain much (anything?) we don't need
 # this stage will install basic files and packages
-ARG BASE_IMAGE=debian:bookworm-slim
+#ARG BASE_IMAGE=debian:bookworm-slim
+ARG BASE_IMAGE=ubuntu:22.04
 FROM $BASE_IMAGE AS base
 
 # copy in static files
@@ -76,7 +77,7 @@ RUN chmod 755 /kind/bin && \
       conntrack iptables nftables iproute2 ethtool util-linux mount kmod \
       libseccomp2 pigz fuse-overlayfs \
       nfs-common open-iscsi \
-      bash ca-certificates curl jq procps \
+      bash ca-certificates curl jq procps gnupg2 lsb-release \
     && find /lib/systemd/system/sysinit.target.wants/ -name "systemd-tmpfiles-setup.service" -delete \
     && rm -f /lib/systemd/system/multi-user.target.wants/* \
     && rm -f /etc/systemd/system/*.wants/* \
@@ -108,10 +109,10 @@ COPY --chmod=0755 scripts/third_party/gimme/gimme /usr/local/bin/
 COPY --chmod=0755 scripts/target-cc /usr/local/bin/
 # tools needed at build-time only
 # first ensure we can install packages for both architectures
-RUN dpkg --add-architecture arm64 && dpkg --add-architecture amd64 \
-    && clean-install bash ca-certificates curl git make pkg-config \
-    crossbuild-essential-amd64 crossbuild-essential-arm64 \
-    libseccomp-dev:amd64 libseccomp-dev:arm64
+#RUN dpkg --add-architecture arm64 && dpkg --add-architecture amd64
+RUN clean-install bash ca-certificates curl git make pkg-config \
+    crossbuild-essential-amd64 \
+    libseccomp-dev:amd64
 # set by makefile to .go-version
 ARG GO_VERSION
 RUN eval "$(gimme "${GO_VERSION}")" \
@@ -243,3 +244,7 @@ ENV container=docker
 STOPSIGNAL SIGRTMIN+3
 # NOTE: this is *only* for documentation, the entrypoint is overridden later
 ENTRYPOINT [ "/usr/local/bin/entrypoint", "/sbin/init" ]
+
+COPY files/install_gaudi_sw.sh /install_gaudi_sw.sh
+RUN /bin/bash /install_gaudi_sw.sh
+RUN rm /install_gaudi_sw.sh
