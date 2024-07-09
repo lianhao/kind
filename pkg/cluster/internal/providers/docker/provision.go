@@ -241,6 +241,8 @@ func runArgsForNode(node *config.Node, clusterIPFamily config.ClusterIPFamily, n
 	},
 		args...,
 	)
+	// add ExtraCreateArgs
+	args = append(args, node.ExtraCreateArgs...)
 
 	// convert mounts and port mappings to container run args
 	args = append(args, generateMountBindings(node.ExtraMounts...)...)

@@ -151,6 +151,11 @@ func (in *Node) DeepCopyInto(out *Node) {
 		*out = make([]PatchJSON6902, len(*in))
 		copy(*out, *in)
 	}
+	if in.ExtraCreateArgs != nil {
+		in, out := &in.ExtraCreateArgs, &out.ExtraCreateArgs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
